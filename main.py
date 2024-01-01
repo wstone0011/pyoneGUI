@@ -62,7 +62,7 @@ def traverse_directory(path):
         elif entry.is_dir():
             traverse_directory(entry.path)
 
-traverse_directory("plugin")
+traverse_directory(plugin_path)
 for path in lst_py:
     code=read_file(path)
     exec(code)
@@ -110,7 +110,7 @@ class Application(tk.Tk):
         # 创建文本框
         for i in range(0, self.TextItems["num"]):
             obj=tk.Text(tabs[i])
-            obj.pack(expand=1, fill="both")    # expand=1，组件会随着父容器的扩展而扩展；fill="both" 表示将组件填充满可用空间。两者配合，是的text0可以跟随窗口调整而变化。
+            obj.pack(expand=1, fill="both")    # expand=1，组件会随着父容器的扩展而扩展；fill="both" 表示将组件填充满可用空间。两者配合，使得text0可以跟随窗口调整而变化。
             self.TextItems["list"].append({"obj":obj})
         self.TextItems["cur_id"] = self.tab_control.select()
 
