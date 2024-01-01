@@ -50,13 +50,11 @@ print(requests.__version__)
 
 # 特点介绍
 ## 绿色便携
-```
 这个特点是pyinstaller带来的，将程序和依赖库打包成一个可执行文件，绿色便携，路径无关，方便执行。
-```
 
 ## 插件自由
-```python
 这个特点是由exec函数配合技巧性的软件设计带来的。核心逻辑如下：
+```python
 lst_py=[]
 def traverse_directory(path):
     for entry in os.scandir(path):
@@ -79,16 +77,13 @@ lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getatt
 ```
 
 ## 即改即用
-```
 这个特点是Python本身的能力。
 
 有这个能力加持，如果对某个插件不满意，可以即改即用，比如GBK解码报错，可以立即换成别的编码，甚至更改整改函数逻辑，使用的就是熟悉的Python语言，不需要增加新的学习成本，灵活且强大，除了性能和稳定性，没有槽点。（非常适合写小工具和实验性质的项目，比如PoC）
-```
 
 ## 几乎可以完美表现Python的能力
-```
 这个特点是exec函数带来的
-```
+
 
 # 插件举例
 每个插件都是Plugin类的子类，只要在plugin目录下随便建一个py文件写个Plugin子类就是一个新的插件。需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的插件。
@@ -96,7 +91,7 @@ lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getatt
 插件机制的代码逻辑可参见“插件自由”特点介绍、main.py、plugin/base.py等内容。
 
 ## 字典去重
-“字典去重”这个插件是在demo.py中实现的，其类名为RemoveDuplicates（唯一），menu和name分别是菜单名称和插件名称，这两个值决定了插件的显示。
+“字典去重”这个插件是在demo.py中实现的，其类名为RemoveDuplicates（唯一），menu和name分别是菜单名称和插件名称，这两个值决定了插件的显示名称。
 ```
 class RemoveDuplicates(Plugin):
     menu="文本处理"
@@ -147,7 +142,7 @@ class WorkflowOrchestration(Plugin):
 ![workfloworchestration](image/workfloworchestration.png)
 
 ## 命令行
-“命令行”这个插件是在laboratory.py中实现的，可以执行系统命令。这是一个有这自定义界面的插件，其type类型为laboratory，通过buildWindow函数绘制了插件界面，并返回了self.output_text，点击“开始”的时候执行onStart函数，点击“查看帮助文档”的时候执行showHelp函数。
+“命令行”这个插件是在laboratory.py中实现的，可以执行系统命令。这是一个有自定义界面的插件，其type类型为laboratory，通过buildWindow函数绘制了插件界面，并返回了self.output_text，点击“开始”的时候执行onStart函数，点击“查看帮助文档”的时候执行showHelp函数。
 ```
 class CMD(Plugin):
     menu="实验室"
