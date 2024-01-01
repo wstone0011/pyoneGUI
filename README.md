@@ -18,7 +18,7 @@ pyinstaller: 5.13.2
 ```
 
 # 打包说明
-```
+```bash
 打包出来的程序会有命令行窗口，其实留着命令行窗口也挺好，方便看报错日志。
 pyinstaller -F main.py --noupx
 
@@ -28,7 +28,7 @@ pyinstaller -F main.pyw --noupx
 ```
 
 对于打包好的程序，使用"代码执行->执行Python代码"功能执行如下代码，可以查看打包到pyoneGUI里的依赖库等信息
-```
+```python
 查看python版本
 import sys
 print(sys.version)
@@ -79,7 +79,7 @@ lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getatt
 ## 即改即用
 这个特点是Python本身的能力。
 
-有这个能力加持，如果对某个插件不满意，可以即改即用，比如GBK解码报错，可以立即换成别的编码，甚至更改整改函数逻辑，使用的就是熟悉的Python语言，不需要增加新的学习成本，灵活且强大，除了性能和稳定性，没有槽点。（非常适合写小工具和实验性质的项目，比如PoC）
+有这个能力加持，如果对某个插件不满意，可以即改即用，比如GBK解码报错，可以立即换成别的编码，甚至更改整个函数逻辑，使用的就是熟悉的Python语言，不需要增加新的学习成本，灵活且强大，除了性能和稳定性，没有槽点。（非常适合写小工具和实验性质的项目，比如PoC）
 
 ## 几乎可以完美表现Python的能力
 这个特点是exec函数带来的
@@ -92,7 +92,7 @@ lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getatt
 
 ## 字典去重
 “字典去重”这个插件是在demo.py中实现的，其类名为RemoveDuplicates（唯一），menu和name分别是菜单名称和插件名称，这两个值决定了插件的显示名称。
-```
+```python
 class RemoveDuplicates(Plugin):
     menu="文本处理"
     name="字典去重"
@@ -107,7 +107,7 @@ class RemoveDuplicates(Plugin):
 
 ## json格式化
 “json格式化”这个插件是在demo.py中实现的
-```
+```python
 class JsonView(Plugin):
     menu="文本处理"
     name="json格式化"
@@ -122,7 +122,7 @@ class JsonView(Plugin):
 
 ## 场景编排demo
 “场景编排demo”这个插件是在laboratory.py中实现的，这是一个实验性质的插件，其展示了场景编排能力，可以把其他的插件组合在一起，按照新的逻辑处理任务。
-```
+```python
 class WorkflowOrchestration(Plugin):
     menu="实验室"
     name="场景编排demo"
@@ -143,7 +143,7 @@ class WorkflowOrchestration(Plugin):
 
 ## 命令行
 “命令行”这个插件是在laboratory.py中实现的，可以执行系统命令。这是一个有自定义界面的插件，其type类型为laboratory，通过buildWindow函数绘制了插件界面，并返回了self.output_text，点击“开始”的时候执行onStart函数，点击“查看帮助文档”的时候执行showHelp函数。
-```
+```python
 class CMD(Plugin):
     menu="实验室"
     name="命令行"
@@ -181,7 +181,7 @@ class CMD(Plugin):
 
 ## http.server
 “http.server”这个插件是在laboratory.py中实现的，点击开始按钮会启动一个简单的HTTP服务，可以用来下载文件。
-```
+```python
 class HttpServer(Plugin):
     menu="实验室"
     name="http.server"
@@ -243,7 +243,7 @@ class HttpServer(Plugin):
 
 ## HTTP访问
 "HTTP访问"这个插件是在poc.py中实现的，可以访问指定的URL地址并返回结果，是PoC功能的一个例子。这个插件没有定义buildWindow函数，而是使用的父类Plugin默认的buildWindow函数完成的界面绘制。
-```
+```python
 class HttpGet(Plugin):
     menu="POC脚本"
     name="HTTP访问"
