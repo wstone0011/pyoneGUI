@@ -1,0 +1,14 @@
+项目地址：
+https://github.com/wstone0011/pyoneGUI
+绿色便携，插件自由，即改即用，几乎可以完美表现Python的能力
+
+重要：请在issues中完善反馈意见，尤其是不需要大的环境依赖就能实现的有意思的功能点。
+
+2024.1.4
+[+] 发布了了pyoneGUI_v1.0.3版本，添加了pyinstaller解包、pyc反编译、反弹Shell生成这3个插件，python环境为python-3.7.3-x86
+
+2024.1.2
+[+] 发布了了pyoneGUI_v1.0.2版本，python环境更改为python-3.7.3-x86，在Win10和Win7 64位下运行正常
+
+2024.1.1
+[+] 发布了了pyoneGUI_v1.0.1版本，python环境位python-3.12.0-amd64，在Win10下运行正常，但在Win7下运行报错
