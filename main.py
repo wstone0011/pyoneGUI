@@ -17,6 +17,11 @@ import hashlib
 import json
 import time
 import platform
+import uuid
+from uncompyle6 import verify
+from uncompyle6.main import main, status_msg
+from uncompyle6.version import __version__
+import uncompyle6.scanners.scanner37
 
 #pyoneGUI v1.0
 
@@ -60,7 +65,8 @@ def traverse_directory(path):
                 else:
                     lst_py.append(entry.path)
         elif entry.is_dir():
-            traverse_directory(entry.path)
+            if entry.name!="lib" and entry.name!="tool" and entry.name!="env":  #避免全局调用，而是放在插件内部调用，尽量减少全局变量冲突
+                traverse_directory(entry.path)
 
 traverse_directory(plugin_path)
 for path in lst_py:

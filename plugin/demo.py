@@ -73,7 +73,11 @@ class IpRemoveDuplicates(Plugin):
     def run(self, text):
         if not text:
             return ""
-        ips=IPs()  #plugin下的所有类都在globals里，所以可以直接用。IPs的实现在lib目录下的IPs.py
+        local_vars={}
+        exec(self.readFile("plugin/lib/IPs.py"), local_vars)  #exec(code, globals()) 有效，但怕污染全局变量，尤其是插件多了之后；
+        IPs=local_vars["IPs"]                                 #exec(code, locals())  只能修改局部变量副本，没什么用
+        
+        ips=IPs()  #IPs的实现在lib目录的IPs.py
         REGEXP_IPV4 = r"((?:(?:(?:\d{1,2})|(?:1\d{2})|(?:2[0-4]\d)|(?:25[0-5]))\.){3}(?:(?:1\d{2})|(?:\d{1,2})|(?:2[0-4]\d)|(?:25[0-5])))(?:[^0-9]|$)"  #^表示取反，即从数字开始，但最后要非数字
         res=re.findall(REGEXP_IPV4, text)
         for _ in res:
@@ -193,3 +197,37 @@ class EvalPython(Plugin):
         answer = eval(text)
         return "{answer}={expression}".format(answer=answer, expression=text)
         
+# 逆向分析
+class Pyinstxtractor(Plugin):
+    menu="逆向分析"
+    name="pyinstaller解包（pyinstxtractor）"
+    def run(self, text):
+        result="[!] 本功能源自：https://github.com/extremecoders-re/pyinstxtractor"
+        result+="\n\n"
+        
+        cwd_path=os.getcwd()
+        file = self.filedialogAskopenfilename(initialdir=cwd_path)  #弹出对话框选择文件，在Plugin基类里实现
+        
+        local_vars={}
+        exec(self.readFile("plugin/lib/LibPluginPyinstxtractor.py"), local_vars)
+        LibPluginPyinstxtractor=local_vars["LibPluginPyinstxtractor"]
+        
+        result+=LibPluginPyinstxtractor.extractFiles(file)
+        return result
+        
+class Uncompyle6(Plugin):
+    menu="逆向分析"
+    name="pyc反编译（uncompyle6）"
+    def run(self, text):
+        result="[!] 本功能源自：https://github.com/rocky/python-uncompyle6"
+        result+="\n\n"
+        file = self.filedialogAskopenfilename(initialdir=os.getcwd(), filetypes=[("Compiled Python Files", "*.pyc"), ("All Files", "*")])  #弹出对话框选择文件，在Plugin基类里实现
+        
+        local_vars={}
+        exec(self.readFile("plugin/lib/LibPluginUncompyle6.py"), local_vars)
+        LibPluginUncompyle6=local_vars["LibPluginUncompyle6"]
+        
+        LibPluginUncompyle6.Decompile(file)
+        result+=file+"反编译结束"
+        return result
+
