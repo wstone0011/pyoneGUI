@@ -10,7 +10,7 @@ class Plugin(object):
     name="base"   #插件名称
     enable=True   #插件默认启用，可以配置关闭
     type="text"   #text、laboratory。插件默认为文本处理类型，也可以配置为实验室类型，可以自定义界面
-    frame_args={"text_num":10, "cur_text_id":0, "cur_text":"", "tab_laboratory":""}
+    frame_args={"text_tab_num":10, "cur_tab_id":0, "cur_text":"", "tab_laboratory":""}
     #options=[]    #[{"Name":"URL", "Current Setting":"", "Required":"yes", "Description":"目标URL", "obj":url_label }]，用实例对象而不是类对象，确保每个插件的options独立
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36'}
     def _run(self, args):  #当为text类型的插件时，框架调用此函数

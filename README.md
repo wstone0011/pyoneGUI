@@ -42,7 +42,7 @@ import sys
 for module_name in sys.modules:
     print(module_name)
 
-查看requests库的信息
+查看requests库的版本
 import requests
 print(requests.__version__)
 
@@ -86,7 +86,7 @@ lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getatt
 
 
 # 插件举例
-每个插件都是Plugin类的子类，只要在plugin目录下随便建一个py文件写个Plugin子类就是一个新的插件。需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的插件。
+每个插件都是Plugin类的子类，只要在plugin目录下随便建一个py文件写个Plugin子类就是一个新的插件。需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的同名插件。
 
 插件机制的代码逻辑可参见“插件自由”特点介绍、main.py、plugin/base.py等内容。
 
@@ -150,7 +150,7 @@ class CMD(Plugin):
     type="laboratory"
     def buildWindow(self):
         tab_laboratory = self.frame_args["tab_laboratory"]
-        此处省略一些花界面的代码
+        此处省略一些画界面的代码
 
         # 设置options
         self.options=Options()
@@ -189,7 +189,7 @@ class HttpServer(Plugin):
     server=None
     def buildWindow(self):
         tab_laboratory = self.frame_args["tab_laboratory"]
-        此处省略一些花界面的代码
+        此处省略一些画界面的代码
 
         # 设置options
         self.options=Options()

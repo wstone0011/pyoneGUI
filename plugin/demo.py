@@ -7,14 +7,14 @@ import os
 
 # 界面上的菜单顺序默认按照插件子类的定义顺序排列，优先找base.py文件，然后找其他py文件。
 # 文件
-class loadFile(Plugin):
+class LoadFile(Plugin):
     menu="文件"
     name="加载文件"
     def run(self, text):
         file = self.filedialogAskopenfilename(initialdir=os.getcwd())  #弹出对话框选择文件，在Plugin基类里实现
         return self.readFile(file)
         
-class saveFile(Plugin):
+class SaveFile(Plugin):
     menu="文件"
     name="保存文件"
     def run(self, text):
@@ -43,7 +43,7 @@ class SortLines(Plugin):
             return ""
         
         #默认升序排序，再点一下则降序排序，每个文本窗口都是独立的
-        id=self.frame_args["cur_text_id"]
+        id=self.frame_args["cur_tab_id"]
         if id not in self.orders:
             self.orders[id]=False  #reverse  False 升序；True 降序
         else:
@@ -52,6 +52,14 @@ class SortLines(Plugin):
         words = text.strip().replace("\r\n", "\n").split("\n")
         words.sort(reverse=self.orders[id])
         return "\n".join(words)
+        
+class RemoveSpace(Plugin):
+    menu="文本处理"
+    name="去除空格"
+    def run(self, text):
+        if not text:
+            return ""
+        return text.replace(" ", "")
         
 class IpExtractor(Plugin):
     menu="文本处理"

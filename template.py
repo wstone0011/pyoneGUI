@@ -11,7 +11,7 @@ class Plugin(object):
     name="base"   #插件名称
     enable=True   #插件默认启用，可以配置关闭
     type="text"   #text、laboratory。插件默认为文本处理类型，也可以配置为实验室类型，可以自定义界面
-    frame_args={"text_num":10, "cur_text_id":0, "cur_text":"", "tab_laboratory":""}
+    frame_args={"text_tab_num":10, "cur_tab_id":0, "cur_text":"", "tab_laboratory":""}
     #options=[]    #[{"Name":"URL", "Current Setting":"", "Required":"yes", "Description":"目标URL", "obj":url_label }]，用实例对象而不是类对象，确保每个插件的options独立
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36'}
     def _run(self, args):  #当为text类型的插件时，框架调用此函数
@@ -231,14 +231,14 @@ import os
 
 # 界面上的菜单顺序默认按照插件子类的定义顺序排列，优先找base.py文件，然后找其他py文件。
 # 文件
-class loadFile(Plugin):
+class LoadFile(Plugin):
     menu="文件"
     name="加载文件"
     def run(self, text):
         file = self.filedialogAskopenfilename(initialdir=os.getcwd())  #弹出对话框选择文件，在Plugin基类里实现
         return self.readFile(file)
         
-class saveFile(Plugin):
+class SaveFile(Plugin):
     menu="文件"
     name="保存文件"
     def run(self, text):
@@ -267,7 +267,7 @@ class SortLines(Plugin):
             return ""
         
         #默认升序排序，再点一下则降序排序，每个文本窗口都是独立的
-        id=self.frame_args["cur_text_id"]
+        id=self.frame_args["cur_tab_id"]
         if id not in self.orders:
             self.orders[id]=False  #reverse  False 升序；True 降序
         else:

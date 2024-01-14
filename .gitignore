@@ -3,9 +3,11 @@ main.spec
 新建文本文档.txt
 ips.txt
 main.exe
+pyoneGUI.exe
 build
 dist
 out_*.txt
 plugin - 副本
 cmd_py3.7.3-32.bat
 *_extracted
+t.py
