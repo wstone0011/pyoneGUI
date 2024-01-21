@@ -13,3 +13,6 @@ cmd_py3.7.3-32.bat
 t.py
 plugin_with_fscan
 run.bat
+资源
+*.log
+plugin/tool

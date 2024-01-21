@@ -13,6 +13,7 @@ class Plugin(object):
     frame_args={"text_tab_num":10, "cur_tab_id":0, "cur_text":"", "tab_laboratory":""}
     #options=[]    #[{"Name":"URL", "Current Setting":"", "Required":"yes", "Description":"目标URL", "obj":url_label }]，用实例对象而不是类对象，确保每个插件的options独立
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36'}
+    plugin_directory=""
     def _run(self, args):  #当为text类型的插件时，框架调用此函数
         self.frame_args.update(args)
         return self.run(self.frame_args["cur_text"])
@@ -46,25 +47,43 @@ class Plugin(object):
                     f.write(content)
             except Exception as e:
                 raise Exception("无法识别的文件编码") from e
-                
-    def executeCommand(self, command, logfunc=None):
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
         
+    def executeCommand(self, args, bufsize=0, executable=None,
+                 stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                 preexec_fn=None, close_fds=True,
+                 shell=True, cwd=None, env=None, universal_newlines=None,
+                 startupinfo=None, creationflags=0,
+                 restore_signals=True, start_new_session=False,
+                 pass_fds=(), *rest, encoding=None, errors=None, text=None, logfunc=None):
+                 
+        process = subprocess.Popen(args=args, bufsize=bufsize, executable=executable,
+                 stdin=stdin, stdout=stdout, stderr=stderr,
+                 preexec_fn=preexec_fn, close_fds=close_fds,
+                 shell=shell, cwd=cwd, env=env, universal_newlines=universal_newlines,
+                 startupinfo=startupinfo, creationflags=creationflags,
+                 restore_signals=restore_signals, start_new_session=start_new_session,
+                 pass_fds=pass_fds, *rest, encoding=encoding, errors=errors, text=text) # *rest传进来了，但是暂时用不到，可能是为了以后的兼容性
+        #process = subprocess.Popen(args, bufsize, executable, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        
+        # 实时读取子进程输出
         while True:
-            data=process.stdout.readline()
+            data = process.stdout.readline()
+            if data == b'' and process.poll() is not None:
+                break
+                
             try:
                 output = data.decode('utf-8')
             except:
                 output = data.decode('gbk')
                 
-            if output == '' and process.poll() is not None:
-                break
             if output and not logfunc:
                 print(output, end="")
             elif output and logfunc:
                 logfunc(output)
+        # 等待子进程彻底结束
+        process.wait()
         
-        return process.poll()  #返回码
+        return process.returncode
                 
     def filedialogAskopenfilename(self, **options):
         return filedialog.askopenfilename(**options)
