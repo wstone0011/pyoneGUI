@@ -11,3 +11,5 @@ plugin - 副本
 cmd_py3.7.3-32.bat
 *_extracted
 t.py
+plugin_with_fscan
+run.bat

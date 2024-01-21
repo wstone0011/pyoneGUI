@@ -4,11 +4,17 @@ https://github.com/wstone0011/pyoneGUI
 
 重要：请在issues中完善反馈意见，尤其是不需要大的环境依赖就能实现的有意思的功能点。
 
+2024.1.21
+[+] 发布了pyoneGUI_v1.1.1版本，封装了fscan程序
+
+2024.1.15
+[+] 发布了pyoneGUI_v1.1.0版本，框架代码做了微调，添加了-lp参数和-fp参数，可以在命令行上指定插件路径，也可以指定pyoneGUI运行后第一个运行的插件，进而选择默认插件视图，并且可以把pyoneGUI当做pyone直接在命令行中运行python脚本。内置的python环境为python-3.7.3-x86.exe
+
 2024.1.4
-[+] 发布了了pyoneGUI_v1.0.3版本，添加了pyinstaller解包、pyc反编译、反弹Shell生成这3个插件，python环境为python-3.7.3-x86
+[+] 发布了pyoneGUI_v1.0.3版本，添加了pyinstaller解包、pyc反编译、反弹Shell生成这3个插件，python环境为python-3.7.3-x86
 
 2024.1.2
-[+] 发布了了pyoneGUI_v1.0.2版本，python环境更改为python-3.7.3-x86，在Win10和Win7 64位下运行正常
+[+] 发布了pyoneGUI_v1.0.2版本，python环境更改为python-3.7.3-x86，在Win10和Win7 64位下运行正常
 
 2024.1.1
-[+] 发布了了pyoneGUI_v1.0.1版本，python环境位python-3.12.0-amd64，在Win10下运行正常，但在Win7下运行报错
+[+] 发布了pyoneGUI_v1.0.1版本，python环境位python-3.12.0-amd64，在Win10下运行正常，但在Win7下运行报错

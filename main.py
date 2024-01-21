@@ -76,14 +76,14 @@ class PluginHub(list):
                 if entry.name!="lib" and entry.name!="tool" and entry.name!="env":  #这几个目录避免全局调用exec，而是放在插件内部调用，尽量减少全局变量冲突
                     self.traverseDirectory(entry.path)
 
-    def loadPlugin(self, plugin_path="plugin"):
-        if not os.path.exists(plugin_path):
-            print(f"[!] {plugin_path} is not found, default plugin will be created in the {plugin_path} directory.")
-            os.makedirs(plugin_path)
+    def loadPlugin(self, plugin_directory="plugin"):
+        if not os.path.exists(plugin_directory):
+            print(f"[!] {plugin_directory} is not found, default plugin will be created in the {plugin_directory} directory.")
+            os.makedirs(plugin_directory)
             for py in plugin_codes:
-                self.writeFile(plugin_path+"/"+py, plugin_codes[py])
+                self.writeFile(plugin_directory+"/"+py, plugin_codes[py])
             
-        self.traverseDirectory(plugin_path)
+        self.traverseDirectory(plugin_directory)
         for path in self.lst_py:
             code=self.readFile(path)
             exec(code, globals())
@@ -93,7 +93,9 @@ class PluginHub(list):
                 obj=v()
                 if obj.__class__.__name__!="Plugin":
                     self.append({"class":obj.__class__.__name__, "obj":obj})  #不用排序，使用默认顺序挺好，方便控制菜单位置
-
+                else:
+                    Plugin.plugin_directory=plugin_directory
+                    
 class Application(tk.Tk):
     def __init__(self, pluginhub=[], first_plugin=None):
         super().__init__()
@@ -196,9 +198,19 @@ class Application(tk.Tk):
             text_obj.delete("1.0", tk.END)
             text_obj.insert(tk.END, text)
         else:
+            # 删除所有子组件
             children = self.tab_laboratory.winfo_children()  # 获取子组件列表
             for child in children:
                 child.destroy()
+                
+            # 获取行数和列数
+            cols, rows = self.tab_laboratory.grid_size()
+            # 重置每一行和每一列的权重
+            for col in range(cols):
+                self.tab_laboratory.grid_columnconfigure(col, weight=0)
+            for row in range(rows):
+                self.tab_laboratory.grid_rowconfigure(row, weight=0)
+            
             self.frame_args["laboratory_output_text_obj"]=plugin.buildWindow()  #插件通过tab_laboratory操作界面，buildWindow函数会返回一个输出文本的tk.Text对象，方便其他插件更改文本
             self.tab_control.add(self.tab_laboratory, text=plugin.name)  #更改选项卡名称为当前插件的名称
             self.tab_control.select(self.tab_laboratory)    #主动切换到当前插件的选项卡上
@@ -224,7 +236,7 @@ def main():
         os._exit(0)
         
     phub=PluginHub()
-    phub.loadPlugin(plugin_path=args.plugin_directory[0])
+    phub.loadPlugin(plugin_directory=args.plugin_directory[0])
     app = Application(pluginhub=phub, first_plugin=args.first_plugin[0])
     app.mainloop()
     
