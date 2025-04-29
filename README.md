@@ -1,33 +1,36 @@
 # pyoneGUI
+自pyoneGUI_v2.0起，构建了一个绿色版的Python环境，并安装了requests、pwntools等常用库。在此基础上，开发了一套很有特色的插件机制，允许便捷地编写Python代码并将其集成到图形界面菜单中。该项目旨在帮助高效管理编程灵感，持续积累技术经验，并通过插件模块快速复用提升效率。
 
-**重要：** 请在issues中完善反馈意见，尤其是不需要大的环境依赖就能实现的有意思的功能点。
+![about](image/about.png)
+
+![infoplugin](image/infoplugin.png)
+
+![hashid](image/hashid.png)
 
 # 环境依赖
 ```
-这些版本下有效，其他版本未测试（2024.1.2更新）
+这些版本下有效，其他版本未测试（2025.4.29更新）
 1.Win10下正常，Win7下报错
 Python: 3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]
 tkinter.TkVersion: 8.6
 pyinstaller: 6.2.0
 
-2.Win10下正常，Win7_64位下正常
+2.Win11下正常，Win10下正常，Win7_64位下正常
 Python: 3.7.3 (v3.7.3:ef4ec6ed12, Mar 25 2019, 21:26:53) [MSC v.1916 32 bit (Intel)]
 tkinter.TkVersion: 8.6
 pyinstaller: 5.13.2
 
+3.Win11下正常，Win10下正常，Win7_64位下正常
+Python: 3.7.3 (v3.7.3:ef4ec6ed12, Mar 25 2019, 22:22:05) [MSC v.1916 64 bit (AMD64)]  （目前主要以此版本的Python为基础进行开发和测试，如 pyoneGUI_v2.1.0）
+tkinter.TkVersion: 8.6
 ```
 
-# 打包说明
-```bash
-打包出来的程序会有命令行窗口，其实留着命令行窗口也挺好，方便看报错日志。
-pyinstaller -F main.py --noupx
+# 查看版本
+## 通过“系统管理”菜单查看
+![sysmgr](image/sysmgr.png)
 
-把py脚本后缀改为pyw，再打包，运行时就没有命令行窗口了。
-pyinstaller -F main.pyw --noupx
-
-```
-
-对于打包好的程序，使用"代码执行->执行Python代码"功能执行如下代码，可以查看打包到pyoneGUI里的依赖库等信息
+## 通过自定义Python代码查看
+例如
 ```python
 查看python版本
 import sys
@@ -47,48 +50,12 @@ import requests
 print(requests.__version__)
 
 ```
+![versionview](image/versionview.png)
 
-# 特点介绍
-## 绿色便携
-这个特点是pyinstaller带来的，将程序和依赖库打包成一个可执行文件，绿色便携，路径无关，方便执行。
+# 插件编写举例说明
+**注：当前阶段，pyoneGUI的特色不在插件上，而是在插件管理的机制上。**
 
-## 插件自由
-这个特点是由exec函数配合技巧性的软件设计带来的。核心逻辑如下：
-```python
-lst_py=[]
-def traverse_directory(path):
-    for entry in os.scandir(path):
-        if entry.is_file():
-            if entry.path.endswith(".py"):
-                if entry.name=="base.py":
-                    lst_py.insert(0, entry.path)
-                else:
-                    lst_py.append(entry.path)
-        elif entry.is_dir():
-            traverse_directory(entry.path)
-
-traverse_directory("plugin")
-for path in lst_py:
-    code=read_file(path)
-    exec(code)
-
-lst_plugin=[obj for obj in [v() for v in globals().values()  if Plugin in getattr(v, "__mro__", [])] if obj.__class__.__name__!="Plugin" ]
-
-```
-
-## 即改即用
-这个特点是Python本身的能力。
-
-有这个能力加持，如果对某个插件不满意，可以即改即用，比如GBK解码报错，可以立即换成别的编码，甚至更改整个函数逻辑，使用的就是熟悉的Python语言，不需要增加新的学习成本，灵活且强大，除了性能和稳定性，没有槽点。（非常适合写小工具和实验性质的项目，比如PoC）
-
-## 几乎可以完美表现Python的能力
-这个特点是exec函数带来的
-
-
-# 插件举例
-每个插件都是Plugin类的子类，只要在plugin目录下随便建一个py文件写个Plugin子类就是一个新的插件。需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的同名插件。
-
-插件机制的代码逻辑可参见“插件自由”特点介绍、main.py、plugin/base.py等内容。
+每个插件都是Plugin类的子类，**只要在plugin目录下随便建一个py文件，写个Plugin子类就是一个新的插件。** 需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的同名插件。
 
 ## 字典去重
 “字典去重”这个插件是在demo.py中实现的，其类名为RemoveDuplicates（唯一），menu和name分别是菜单名称和插件名称，这两个值决定了插件的显示名称。
@@ -240,7 +207,6 @@ class HttpServer(Plugin):
 
 ![httpserver](image/httpserver.png)
 
-
 ## HTTP访问
 "HTTP访问"这个插件是在poc.py中实现的，可以访问指定的URL地址并返回结果，是PoC功能的一个例子。这个插件没有定义buildWindow函数，而是使用的父类Plugin默认的buildWindow函数完成的界面绘制。
 ```python
@@ -260,9 +226,10 @@ class HttpGet(Plugin):
 
 ![httpget](image/httpget.png)
 
+# 其他说明
+```
+1. 出于时间和动力方面的考虑，作者目前并没有提供Linux版本的pyoneGUI，但是如果要自己制作一个的话，应该也不难。
+```
+
 # 下一步计划
-```
-1.接收合理的反馈意见，完善现有框架结构
-2.寻找有趣的点，丰富插件功能
-3.尝试Linux环境下打包，并能够在支持图形操作的同时支持命令行操作
-```
+寻找有趣的点，丰富插件功能。

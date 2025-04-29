@@ -2,18 +2,24 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter as tk
 import subprocess
+import os
 
 # 集成Plugin类的对象会被自动识别为插件类
 # name是插件名称，enable表示插件是否启用，另外，点击插件时会自动调用run函数，因此，子类应该重写该方法。
 class Plugin(object):
     menu="插件"   #放在哪个菜单下面
     name="base"   #插件名称
+    desc=""  #插件描述
     enable=True   #插件默认启用，可以配置关闭
     type="text"   #text、laboratory。插件默认为文本处理类型，也可以配置为实验室类型，可以自定义界面
     frame_args={"text_tab_num":10, "cur_tab_id":0, "cur_text":"", "tab_laboratory":""}
     #options=[]    #[{"Name":"URL", "Current Setting":"", "Required":"yes", "Description":"目标URL", "obj":url_label }]，用实例对象而不是类对象，确保每个插件的options独立
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36'}
     plugin_directory=""
+    plugin_filepath=""
+    def headers(self):
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.132 Safari/537.36"}
+        return headers
+    
     def _run(self, args):  #当为text类型的插件时，框架调用此函数
         self.frame_args.update(args)
         return self.run(self.frame_args["cur_text"])
@@ -21,32 +27,26 @@ class Plugin(object):
     def run(self, text=""):
         return text
         
+    def getDescription(self):
+        content=f'''
+插件: {self.menu}\n
+名称: {self.name}\n
+类型: {"文本操作" if self.type=="text" else "界面操作"}\n
+类名: {self.__class__.__name__}\n
+目录: {self.plugin_directory}\n
+脚本: {self.plugin_filepath}\n
+描述: {self.desc if self.desc else "该插件未添加描述信息。"}
+'''
+        return content
+        
     def buildWindow(self):  #当为有界面的插件时，框架调用此函数，通过在子类中重写该方法，可以实现插件自定义界面
         return self.buildWindowUrl()
         
     def readFile(self, file):
-        try:
-            with open(file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return content
-        except UnicodeDecodeError:
-            try:
-                with open(file, 'r', encoding='gbk') as f:
-                    content = f.read()
-                return content
-            except Exception as e:
-                raise Exception("无法识别的文件编码") from e
+        return Utils.readFile(file)
                 
     def writeFile(self, file, content):
-        try:
-            with open(file, 'w', encoding='utf-8') as f:
-                f.write(content)
-        except UnicodeDecodeError:
-            try:
-                with open(file, 'w', encoding='gbk') as f:
-                    f.write(content)
-            except Exception as e:
-                raise Exception("无法识别的文件编码") from e
+        return Utils.writeFile(file, content)
         
     def executeCommand(self, args, bufsize=0, executable=None,
                  stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -147,29 +147,33 @@ class Plugin(object):
         
     def buildWindowIpPort(self):
         tab_laboratory = self.frame_args["tab_laboratory"]
-        frame_horizontal = tk.Frame(tab_laboratory)
-        frame_horizontal.grid(row=0, column=0, padx=5, pady=10, sticky=tk.W)
-        host_label = tk.Label(frame_horizontal, text="目标地址:")
+        frame0 = tk.Frame(tab_laboratory)
+        frame0.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        host_label = tk.Label(frame0, text="目标地址:")
         host_label.grid(row=0, column=nexti(i=0))
-        host_entry = tk.Entry(frame_horizontal, width=20)
+        host_entry = tk.Entry(frame0, width=20)
         host_entry.grid(row=0, column=nexti())
-        port_label = tk.Label(frame_horizontal, text="端口:")
+        port_label = tk.Label(frame0, text="端口:")
         port_label.grid(row=0, column=nexti())
-        port_entry = tk.Entry(frame_horizontal, width=8)
+        port_entry = tk.Entry(frame0, width=8)
         port_entry.grid(row=0, column=nexti())
-        tk.Label(frame_horizontal, width=5).grid(row=0, column=nexti(), padx=5)  #占位
-        button_start = tk.Button(frame_horizontal, text="开始", command=self.onStart)
+        tk.Label(frame0, width=5).grid(row=0, column=nexti(), padx=5)  #占位
+        button_start = tk.Button(frame0, text="开始", command=self.onStart)
         button_start.grid(row=0, column=nexti(), padx=5)
-        button_stop = tk.Button(frame_horizontal, text="停止", command=self.onStop)
+        button_stop = tk.Button(frame0, text="停止", command=self.onStop)
         button_stop.grid(row=0, column=nexti(), padx=5)
-        tk.Label(frame_horizontal, width=5).grid(row=0, column=nexti(), padx=5)  #占位
-        button_stop = tk.Button(frame_horizontal, text="查看帮助文档", command=self.showHelp)
-        button_stop.grid(row=0, column=nexti(), padx=5)
+        tk.Label(frame0, width=5).grid(row=0, column=nexti(), padx=5)  #占位
+        button_help = tk.Button(frame0, text="查看帮助文档", command=self.showHelp)
+        button_help.grid(row=0, column=nexti(), padx=5)
 
-        frame_vertical = tk.Frame(tab_laboratory)
-        frame_vertical.grid(row=1, column=0, pady=10, sticky=tk.NSEW)
-        self.output_text = tk.Text(frame_vertical)
-        self.output_text.pack(expand=1, fill="both")
+        frame1 = tk.Frame(tab_laboratory)
+        frame1.grid(row=1, column=0, pady=5, sticky=tk.NSEW)
+        self.output_text = tk.Text(frame1)
+        self.output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scroll_y = ttk.Scrollbar(frame1, orient=tk.VERTICAL)
+        scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
+        scroll_y.configure(command=self.output_text.yview)
+        self.output_text.configure(yscrollcommand=scroll_y.set)
 
         # 设置网格布局列和行权重
         tab_laboratory.grid_columnconfigure(0, weight=1)
@@ -185,25 +189,33 @@ class Plugin(object):
         
     def buildWindowUrl(self):
         tab_laboratory = self.frame_args["tab_laboratory"]
-        frame_horizontal = tk.Frame(tab_laboratory)
-        frame_horizontal.grid(row=0, column=0, padx=5, pady=10, sticky=tk.W)
-        url_label = tk.Label(frame_horizontal, text="URL:")
+        frame0 = tk.Frame(tab_laboratory)
+        frame0.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        url_label = tk.Label(frame0, text="URL:")
         url_label.grid(row=0, column=nexti(i=0))
-        url_entry = tk.Entry(frame_horizontal, width=100)
+        url_entry = tk.Entry(frame0, width=100)
         url_entry.grid(row=0, column=nexti())
-        tk.Label(frame_horizontal, width=5).grid(row=0, column=nexti(), padx=5)  #占位
-        button_start = tk.Button(frame_horizontal, text="开始", command=self.onStart)
+        tk.Label(frame0, width=5).grid(row=0, column=nexti(), padx=5)  #占位
+        button_start = tk.Button(frame0, text="开始", command=self.onStart)
         button_start.grid(row=0, column=nexti(), padx=5)
-        button_stop = tk.Button(frame_horizontal, text="停止", command=self.onStop)
+        button_stop = tk.Button(frame0, text="停止", command=self.onStop)
         button_stop.grid(row=0, column=nexti(), padx=5)
-        tk.Label(frame_horizontal, width=5).grid(row=0, column=nexti(), padx=5)  #占位
-        button_stop = tk.Button(frame_horizontal, text="查看帮助文档", command=self.showHelp)
-        button_stop.grid(row=0, column=nexti(), padx=5)
+        tk.Label(frame0, width=5).grid(row=0, column=nexti(), padx=5)  #占位
+        button_help = tk.Button(frame0, text="查看帮助文档", command=self.showHelp)
+        button_help.grid(row=0, column=nexti(), padx=5)
 
-        frame_vertical = tk.Frame(tab_laboratory)
-        frame_vertical.grid(row=1, column=0, pady=10, sticky=tk.NSEW)
-        self.output_text = tk.Text(frame_vertical)
-        self.output_text.pack(expand=1, fill="both")
+        frame1 = tk.Frame(tab_laboratory)
+        frame1.grid(row=1, column=0, pady=5, sticky=tk.NSEW)
+        self.output_text = tk.Text(frame1)
+        self.output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # 创建滚动窗口
+        scroll_y = ttk.Scrollbar(frame1, orient=tk.VERTICAL)
+        scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # 关联滚动窗口与self.output_text
+        scroll_y.configure(command=self.output_text.yview)
+        self.output_text.configure(yscrollcommand=scroll_y.set)
 
         # 设置网格布局列和行权重
         tab_laboratory.grid_columnconfigure(0, weight=1)

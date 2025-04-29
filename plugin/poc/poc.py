@@ -34,7 +34,7 @@ class HttpGet(Plugin):
     def onStart(self, event=None):
         options=self.getOptions()
         try:
-            res = requests.get(options["URL"], headers=self.headers, timeout=3, verify=False)
+            res = requests.get(options["URL"], headers=self.headers(), timeout=3, verify=False)
             if 200==res.status_code:
                 self.log(res.content.decode("utf-8"))
         except Exception as e:

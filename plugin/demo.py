@@ -4,6 +4,7 @@ import hashlib
 import time
 import re
 import os
+from urllib.parse import parse_qs, unquote
 
 # 界面上的菜单顺序默认按照插件子类的定义顺序排列，优先找base.py文件，然后找其他py文件。
 # 文件
@@ -11,8 +12,22 @@ class LoadFile(Plugin):
     menu="文件"
     name="加载文件"
     def run(self, text):
-        file = self.filedialogAskopenfilename(initialdir=os.getcwd())  #弹出对话框选择文件，在Plugin基类里实现
-        return self.readFile(file)
+        #弹出对话框选择文件，在Plugin基类里实现
+        file = self.filedialogAskopenfilename(initialdir=None)
+        if file:
+            text=self.readFile(file)
+        return text
+        
+class LoadFile2Hex(Plugin):
+    menu="文件"
+    name="加载文件为Hex编码"
+    def run(self, text):
+        file = self.filedialogAskopenfilename(initialdir=None)
+        if file:
+            with open(file, 'rb') as f:
+                binary_data = f.read()
+                return binary_data.hex()
+        return text
         
 class SaveFile(Plugin):
     menu="文件"
@@ -61,6 +76,45 @@ class RemoveSpace(Plugin):
             return ""
         return text.replace(" ", "")
         
+class RemoveMultiLines(Plugin):
+    menu="文本处理"
+    name="去除多余换行符"
+    def run(self, text):
+        if not text:
+            return ""
+        text=text.replace("\r\n", "\n")
+        text=re.sub(r"\n+", r"\n", text)
+        return text
+    
+class RemoveNewline(Plugin):
+    menu="文本处理"
+    name="去除换行符"
+    def run(self, text):
+        if not text:
+            return ""
+        text=text.replace("\n", "")
+        return text
+        
+class StringUnescaper(Plugin):
+    menu="文本处理"
+    name="字符串反转义"
+    desc=r'''将字符串中的转义序列（如\\、\'、\n、\t）转换为实际字符。转换效果如下：
+
+C:\\Windows\\System32  ->  C:\Windows\System32
+{"a": "ab\'c"}         ->  {"a": "ab'c"}
+'{"a": "ab\'c"}'       ->  {"a": "ab'c"}
+'''
+    def run(self, text):
+        if not text:
+            return ""
+        if text.startswith("'"):
+            text=text[1:]
+        if text.endswith("'"):
+            text=text[:-1]
+        local_vars={}
+        exec(r'''res='$$$TEXT$$' '''.replace('$$$TEXT$$', text), local_vars)
+        return local_vars["res"]
+    
 class IpExtractor(Plugin):
     menu="文本处理"
     name="IP提取"
@@ -165,16 +219,90 @@ class HexDecode(Plugin):
         decoded_bytes = bytes.fromhex(text)
         return decoded_bytes.decode("utf-8")
         
+class Hex2CArray(Plugin):
+    menu="编码解码"
+    name="Hex转C数组"
+    def run(self, text):
+        if not text:
+            return ""
+            
+        c_code = "unsigned char data[] = {\n"
+        for i in range(0, len(text), 2):
+            byte = text[i:i+2]
+            c_code += f"0x{byte}"
+            if i < len(text) - 2:
+                c_code += ", "
+            if (i + 2) % 32 == 0:
+                c_code += "\n"
+        c_code += "};"
+        return c_code
+        
+class Hex2PythonArray(Plugin):
+    menu="编码解码"
+    name="Hex转Python数组"
+    def run(self, text):
+        if not text:
+            return ""
+        
+        py_code = "data = [\n"
+        for i in range(0, len(text), 2):
+            byte = text[i:i+2]
+            py_code += f"0x{byte}"
+            if i < len(text) - 2:
+                py_code += ", "
+            if (i + 2) % 32 == 0:
+                py_code += "\n"
+        py_code += "]"
+        return py_code
+
+class XWwwFormUrlencoded2Json(Plugin):
+    menu="编码解码"
+    name="URL查询字符串转json格式"
+    desc=r'''形如：a=1&b=2 -> {"a": "1", "b": "2"}'''
+    def run(self, text):
+        #从application/x-www-form-urlencoded转application/json格式
+        if not text:
+            return ""
+            
+        dic={}
+        decoded_params = parse_qs(text)
+        for key, values in decoded_params.items():
+            decoded_values = [value for value in map(unquote, values)]
+            #print(key, decoded_values)
+            if len(decoded_values)==1:
+                dic[key]=decoded_values[0]
+            else:
+                dic[key]=decoded_values
+        return json.dumps(dic)
+        
 # 加密解密
+class HashIdentifier(Plugin):
+    menu="加密解密"
+    name="哈希算法识别（hash-identifier）"
+    desc=r'''参考 https://github.com/blackploit/hash-identifier/blob/master/hash-id.py'''
+    def run(self, text):
+        if not text:
+            return ""
+            
+        python_path=sys.executable
+        py_path=os.path.normpath(os.getcwd()+"/"+self.plugin_directory+"/_lib/hash-id.py")  #有对hash-id.py进行简单修改
+        cmd=[python_path, py_path, text.strip()]
+        logs=[]
+        self.executeCommand(cmd, cwd=None, logfunc=lambda o:logs.append(o) )
+        result =f"[!] {self.desc}\n\n"
+        result+=os.path.normpath(f"[+] {' '.join(cmd)}\n")
+        result+="".join(logs)+"\n"
+        return result
+        
 class Md5(Plugin):
     menu="加密解密"
     name="md5"
     def run(self, text):
         if not text:
             return ""
-        md5_hash = hashlib.md5()
-        md5_hash.update(text.encode('utf-8'))
-        return md5_hash.hexdigest()
+        h = hashlib.md5()
+        h.update(text.encode('utf-8'))
+        return h.hexdigest()
         
 class Sha1(Plugin):
     menu="加密解密"
@@ -182,23 +310,67 @@ class Sha1(Plugin):
     def run(self, text):
         if not text:
             return ""
-        sha1_hash = hashlib.sha1()
-        sha1_hash.update(text.encode('utf-8'))
-        return sha1_hash.hexdigest()
+        h = hashlib.sha1()
+        h.update(text.encode('utf-8'))
+        return h.hexdigest()
+        
+class Sha256(Plugin):
+    menu="加密解密"
+    name="sha256"
+    def run(self, text):
+        if not text:
+            return ""
+        h = hashlib.sha256()
+        h.update(text.encode('utf-8'))
+        return h.hexdigest()
         
 # 代码执行
 class ExecPython(Plugin):
     menu="代码执行"
-    name="执行Python代码"
+    name="执行Python代码(exec执行)"
     def run(self, text):
         if not text:
             return ""
-        exec(text)
+        try:
+            def fn():
+                local_vars={}
+                exec(text, local_vars)  #虽然用了local_vars，但import的库仍然会影响全局。
+                
+            thread = threading.Thread(target=fn)
+            thread.start()
+        except Exception as e:
+            print(e)
+        return text
+        
+class ExecPython2(Plugin):
+    menu="代码执行"
+    name="执行Python代码(subprocess.Popen调用)"
+    def run(self, text):
+        if not text:
+            return ""
+        try:
+            def fn():
+                if sys.executable.endswith(r"\python.exe"):
+                    command = sys.executable
+                    process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                    output, _ = process.communicate(input=text)
+                    if output:
+                        print(output, end="")
+                    
+                else:
+                    print(sys.executable)
+                    print("[!] unsupported operation")
+                
+            thread = threading.Thread(target=fn)
+            thread.start()
+        except Exception as e:
+            print(e)
         return text
         
 class EvalPython(Plugin):
     menu="代码执行"
-    name="数值计算"
+    name="数值计算（eval）"
+    desc=r'''形如，(1+2)*3 -> 9=(1+2)*3'''
     def run(self, text):
         if not text:
             return ""
@@ -209,33 +381,107 @@ class EvalPython(Plugin):
 class Pyinstxtractor(Plugin):
     menu="逆向分析"
     name="pyinstaller解包（pyinstxtractor）"
+    desc=r'''本功能源自: https://github.com/extremecoders-re/pyinstxtractor ，最后一次提交记录：Commits on Feb 22, 2025'''
     def run(self, text):
-        result="[!] 本功能源自：https://github.com/extremecoders-re/pyinstxtractor"
+        result=f"[!] {self.desc}"
         result+="\n\n"
         
-        cwd_path=os.getcwd()
-        file = self.filedialogAskopenfilename(initialdir=cwd_path)  #弹出对话框选择文件，在Plugin基类里实现
-        
-        local_vars={}
-        exec(self.readFile("plugin/lib/LibPluginPyinstxtractor.py"), local_vars)
-        LibPluginPyinstxtractor=local_vars["LibPluginPyinstxtractor"]
-        
-        result+=LibPluginPyinstxtractor.extractFiles(file)
+        file = self.filedialogAskopenfilename(initialdir=None)
+        if not file:
+            return text
+            
+        python_path=sys.executable
+        py_path=os.path.normpath(os.getcwd()+"/"+self.plugin_directory+"/_lib/pyinstxtractor.py")
+        cmd=[python_path, py_path, file]
+        logs=[]
+        self.executeCommand(cmd, cwd=os.path.dirname(file), logfunc=lambda o:logs.append(o) )
+        result+=os.path.normpath(f"[+] {' '.join(cmd)}\n")
+        result+="".join(logs)+"\n"
         return result
         
 class Uncompyle6(Plugin):
     menu="逆向分析"
     name="pyc反编译（uncompyle6）"
+    desc="本功能源自: https://github.com/rocky/python-uncompyle6"
     def run(self, text):
-        result="[!] 本功能源自：https://github.com/rocky/python-uncompyle6"
-        result+="\n\n"
-        file = self.filedialogAskopenfilename(initialdir=os.getcwd(), filetypes=[("Compiled Python Files", "*.pyc"), ("All Files", "*")])  #弹出对话框选择文件，在Plugin基类里实现
+        result=f"[!] {self.desc}\n\n"
+        file = self.filedialogAskopenfilename(initialdir=None, filetypes=[("Compiled Python Files", "*.pyc"), ("All Files", "*")])  #弹出对话框选择文件，在Plugin基类里实现
+        if not file:
+            return text
         
-        local_vars={}
-        exec(self.readFile("plugin/lib/LibPluginUncompyle6.py"), local_vars)
-        LibPluginUncompyle6=local_vars["LibPluginUncompyle6"]
-        
-        LibPluginUncompyle6.Decompile(file)
-        result+=file+"反编译结束"
+        uncompyle6_path=f"{os.path.dirname(sys.executable)}/Scripts/uncompyle6"
+        cmd=[uncompyle6_path, "-o", "./", file]  # a.pyc -> a.pyc_dis
+        logs=[]
+        self.executeCommand(cmd, cwd=os.path.dirname(file), logfunc=lambda o:logs.append(o) )
+        result+=os.path.normpath(f"[+] {' '.join(cmd)}\n")
+        result+="".join(logs)+"\n"
+        result+=file+" 反编译结束。"
         return result
 
+# 系统管理
+class InfoPythonVersion(Plugin):
+    menu="系统管理"
+    name="查看Python版本"
+    def run(self, text):
+        import sys
+        return sys.version
+        
+class InfoSysPath(Plugin):
+    menu="系统管理"
+    name="查看sys.path"
+    def run(self, text):
+        import sys
+        return "\n".join(sys.path)
+        
+class InfoModules(Plugin):
+    menu="系统管理"
+    name="查看依赖库信息"
+    def run(self, text):
+        import sys
+        res=""
+        for module_name in list(sys.modules):
+            # 获取模块对象
+            module = sys.modules.get(module_name)
+            
+            # 获取版本号（兼容不同模块的版本属性）
+            version = ""
+            if module:
+                try:
+                    # 优先尝试标准版本属性
+                    version = getattr(module, '__version__', None)
+                    
+                    # 部分模块使用 VERSION 属性（如Django）
+                    if version is None:
+                        version = getattr(module, 'VERSION', None)
+                        
+                    # 部分模块使用 __version 属性（如deepspeed）
+                    if version is None:
+                        version = getattr(module, '__version', None)
+                        
+                    if version is None:
+                        version = getattr(module, 'version', None)
+                        
+                    # 其他特殊情况处理
+                    if version is None and module_name == 'sys':
+                        version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+                        
+                    version = version or ""  # 最终兜底
+                except Exception as e:
+                    version = f"Error: {str(e)}"
+            
+            if version:
+                res += f"{module_name} ({version})\n"
+            else:
+                res += f"{module_name}\n"
+        return res
+
+class InfoPlugin(Plugin):
+    menu="系统管理"
+    name="查看插件列表"
+    def run(self, text):
+        res=""
+        for _ in self.frame_args["pluginhub"]:
+            obj=_["obj"]
+            res+=f"{obj.menu}/{obj.name}{'' if obj.enable else f' （已禁用，类名: {obj.__class__.__name__}，路径: {obj.plugin_filepath} ）'}\n"
+        return res
+        

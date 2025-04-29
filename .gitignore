@@ -16,3 +16,10 @@ run.bat
 资源
 *.log
 plugin/tool
+cmd_py3.7.3-embed-amd64.bat
+del.bat
+cmd_py3.7.3-amd64.bat
+cmd_py3.7.3-amd64中文路径测试.bat
+run_pyoneGUI.bat
+plugin_jtest
+plugin_jtest2
