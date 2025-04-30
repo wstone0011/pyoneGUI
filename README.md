@@ -1,3 +1,6 @@
+**声明：因为账号莫名其妙被限制，图片刷不出来，造成使用不便，所以项目地址迁移至**
+[https://gitee.com/wstone0011/pyoneGUI](https://gitee.com/wstone0011/pyoneGUI)
+
 # pyoneGUI
 自pyoneGUI_v2.0起，构建了一个绿色版的Python环境，并安装了requests、pwntools等常用库。在此基础上，开发了一套很有特色的插件机制，允许便捷地编写Python代码并将其集成到图形界面菜单中。该项目旨在帮助高效管理编程灵感，持续积累技术经验，并通过插件模块快速复用提升效率。
 
