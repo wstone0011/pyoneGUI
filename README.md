@@ -1,6 +1,3 @@
-**声明：因为账号莫名其妙被限制，图片刷不出来，造成使用不便，所以项目地址迁移至**
-[https://gitee.com/wstone0011/pyoneGUI](https://gitee.com/wstone0011/pyoneGUI)
-
 # pyoneGUI
 自pyoneGUI_v2.0起，构建了一个绿色版的Python环境，并安装了requests、pwntools等常用库。在此基础上，开发了一套很有特色的插件机制，允许便捷地编写Python代码并将其集成到图形界面菜单中。该项目旨在帮助高效管理编程灵感，持续积累技术经验，并通过插件模块快速复用提升效率。
 
@@ -58,7 +55,7 @@ print(requests.__version__)
 # 插件编写举例说明
 **注：当前阶段，pyoneGUI的特色不在插件上，而是在插件管理的机制上。**
 
-每个插件都是Plugin类的子类，**只要在plugin目录下随便建一个py文件，写个Plugin子类就是一个新的插件。** 需要注意的是，每个插件类的类名是唯一的，不能重复，否则会丢失之前定义的同名插件。
+每个插件都是Plugin类的子类，**只要在plugin目录下随便建一个py文件，写个Plugin子类就是一个新的插件。**
 
 ## 字典去重
 “字典去重”这个插件是在demo.py中实现的，其类名为RemoveDuplicates（唯一），menu和name分别是菜单名称和插件名称，这两个值决定了插件的显示名称。
