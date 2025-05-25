@@ -2,6 +2,8 @@ from tkinter import filedialog
 from tkinter import messagebox
 import tkinter as tk
 import subprocess
+import importlib.util
+import sys
 import os
 
 # 集成Plugin类的对象会被自动识别为插件类
@@ -27,12 +29,28 @@ class Plugin(object):
     def run(self, text=""):
         return text
         
+    def getBaseClassNameChain(self):
+        cls = self.__class__
+        #chain = [cls.__name__]
+        chain = []
+        
+        while 1:
+            cls = cls.__base__  # 获取直接基类
+            if not cls:
+                break
+            if "object"==cls.__name__:
+                break
+            chain.insert(0, cls.__name__)
+            
+        return "->".join(chain)
+        
     def getDescription(self):
         content=f'''
 插件: {self.menu}\n
 名称: {self.name}\n
 类型: {"文本操作" if self.type=="text" else "界面操作"}\n
 类名: {self.__class__.__name__}\n
+父类: {self.getBaseClassNameChain()}\n
 目录: {self.plugin_directory}\n
 脚本: {self.plugin_filepath}\n
 描述: {self.desc if self.desc else "该插件未添加描述信息。"}
@@ -104,12 +122,19 @@ class Plugin(object):
     def getOptions(self):
         for dic in self.options:
             if "obj" in dic:
-                dic["Current Setting"]=dic["obj"].get()
+                try:
+                    value = dic["obj"].get()
+                except:
+                    value = str(dic["obj"])
+                dic["Current Setting"]=value
         return self.options
         
     def log(self, *args):
         msg=" ".join([str(x) for x in args])
         self.output_text.insert(tk.END, msg)
+        
+    def clearLog(self):
+        self.output_text.delete("1.0", tk.END)
         
     def showOptions(self):
         if not self.options:
@@ -250,3 +275,33 @@ def nexti(i=None):
     
 PluginGlobalStorage={}
 
+def load_py_module(name, location):
+    if name in sys.modules:
+        #print(f"{name}模块已存在。")
+        return sys.modules[name]
+        
+    # 检查文件是否存在
+    if not os.path.isfile(location):
+        raise FileNotFoundError(f"文件不存在: {os.path.normpath(location)}")
+    
+    # 创建模块规格
+    spec = importlib.util.spec_from_file_location(name=name,location=location)
+    
+    if spec is None:
+        raise ImportError(f"无法从文件创建模块规格: {location}")
+    
+    # 动态创建模块对象
+    module = importlib.util.module_from_spec(spec)
+    
+    # 将模块注册到sys.modules (可选但推荐)
+    sys.modules[name] = module
+
+    try:
+        # 执行模块初始化
+        spec.loader.exec_module(module)
+    except Exception as e:
+        del sys.modules[name]  # 清理注册
+        raise ImportError(f"模块初始化失败: {str(e)}")
+
+    return module
+    

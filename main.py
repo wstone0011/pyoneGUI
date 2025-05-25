@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 from functools import partial
 from tkinter import messagebox
 import re
@@ -27,7 +28,7 @@ from uncompyle6.version import __version__
 import uncompyle6.scanners.scanner37
 from pwn import *
 
-pyoneGUI_VERSION="pyoneGUI v2.1.0"
+pyoneGUI_VERSION="pyoneGUI v2.1.2"
 
 class Utils(object):
     @staticmethod
@@ -129,7 +130,7 @@ class PluginHub(list):
                             obj=v()
                             self.append({"class":obj.__class__.__name__, "obj":obj})  #不用排序，使用默认顺序挺好，方便控制菜单位置
                     
-class Application(tk.Tk):
+class Application(TkinterDnD.Tk):
     def __init__(self, pluginhub=[], first_plugin=None):
         super().__init__()
         self.pluginhub=pluginhub
